@@ -1,104 +1,127 @@
-.container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #ffffff;
+.box {
+  background: #161b22;
+  border: 1px solid #30363d;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
-.titulo {
-  color: #1a202c;
-  margin-bottom: 20px;
-  text-align: center;
+.title {
+  font-size: 18px;
+  color: #fff;
+  margin-bottom: 15px;
 }
 
-.secaoForm {
-  margin-bottom: 24px;
-}
-
-.campo {
+.field {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 12px;
 }
 
-.campo label {
-  font-weight: 600;
-  color: #4a5568;
+.fieldRow {
+  display: flex;
+  gap: 10px;
 }
 
-.campo input, .campo select {
-  padding: 10px;
-  border: 1px solid #cbd5e0;
+.fieldRow .field {
+  flex: 1;
+}
+
+label {
+  font-size: 13px;
+  color: #8b949e;
+}
+
+input, select {
+  background: #0d1117;
+  border: 1px solid #30363d;
   border-radius: 6px;
+  padding: 8px 10px;
+  color: #fff;
   font-size: 14px;
 }
 
-.seletorExercicio {
+input:focus, select:focus {
+  outline: none;
+  border-color: #ff2a2a;
+}
+
+.row {
   display: flex;
   gap: 8px;
 }
 
-.seletorExercicio select {
+.row select {
   flex: 1;
 }
 
-.botaoAdicionar {
-  padding: 10px 16px;
-  background-color: #319795;
-  color: white;
-  border: none;
+.btnAdd {
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #fff;
+  padding: 0 12px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
 }
 
-.botaoAdicionar:hover {
-  background-color: #2c7a7b;
+.btnAdd:hover {
+  border-color: #8b949e;
 }
 
-.listaCard {
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
+.list {
+  background: #0d1117;
+  border: 1px solid #30363d;
   border-radius: 6px;
-  padding: 16px;
-  margin-bottom: 20px;
+  padding: 12px;
+  margin: 15px 0;
 }
 
-.itemExercicio {
+.item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background: white;
-  border: 1px solid #edf2f7;
-  border-radius: 4px;
-  margin-bottom: 6px;
+  padding: 6px 0;
+  border-bottom: 1px solid #21262d;
+  font-size: 14px;
 }
 
-.botaoRemover {
-  background-color: #e53e3e;
-  color: white;
+.item:last-child {
   border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
 }
 
-.botaoSalvar {
+.btnRemove {
+  background: none;
+  border: none;
+  color: #da3633;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btnSubmit {
   width: 100%;
-  padding: 12px;
-  background-color: #3182ce;
-  color: white;
+  background: #ff2a2a;
   border: none;
+  color: #fff;
+  padding: 10px;
   border-radius: 6px;
-  font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
+  margin-top: 5px;
 }
 
-.botaoSalvar:hover {
-  background-color: #2b6cb0;
+.btnSubmit:hover {
+  background: #e02424;
+}
+
+.msgOk {
+  color: #3fb950;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.msgError {
+  color: #f85149;
+  font-size: 13px;
+  margin-top: 8px;
 }

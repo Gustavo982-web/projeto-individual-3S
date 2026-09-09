@@ -1,59 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './TelaTreino.module.css';
 
 export function TelaTreino() {
-  const [opcoesExercicios, setOpcoesExercicios] = useState([]);
-  const [exercicioSelecionado, setExercicioSelecionado] = useState('');
+  const [exerciciosApi, setExerciciosApi] = useState([]);
+  const [exercicioAtual, setExercicioAtual] = useState('');
   const [listaTreino, setListaTreino] = useState([]);
-  
+
   const [nome, setNome] = useState('');
   const [peso, setPeso] = useState('');
   const [altura, setAltura] = useState('');
   const [objetivo, setObjetivo] = useState('Hipertrofia');
 
-  const [carregando, setCarregando] = useState(false);
-  const [mensagem, setMensagem] = useState(null);
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
-    const buscarExercicios = async () => {
-      try {
-        const res = await fetch('http://localhost:8080/exercicio');
-        if (res.ok) {
-          const dados = await res.json();
-          setOpcoesExercicios(dados);
-          if (dados.length > 0) setExercicioSelecionado(dados[0].nome);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar opções de exercícios:', err);
-      }
-    };
-    buscarExercicios();
+    fetch('http://localhost:8080/exercicio')
+      .then((res) => res.json())
+      .then((data) => {
+        setExerciciosApi(data);
+        if (data.length > 0) setExercicioAtual(data[0].nome);
+      })
+      .catch(() => {});
   }, []);
 
-  const adicionarNaLista = () => {
-    if (exercicioSelecionado && !listaTreino.includes(exercicioSelecionado)) {
-      setListaTreino([...listaTreino, exercicioSelecionado]);
+  function handleAdd() {
+    if (exercicioAtual && !listaTreino.includes(exercicioAtual)) {
+      setListaTreino([...listaTreino, exercicioAtual]);
     }
-  };
+  }
 
-  const removerDaLista = (item) => {
-    setListaTreino(listaTreino.filter((e) => e !== item));
-  };
+  function handleRemove(item) {
+    setListaTreino(listaTreino.filter((ex) => ex !== item));
+  }
 
-  const salvarPerfilETreino = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
+
     if (listaTreino.length === 0) {
-      setMensagem({ tipo: 'erro', texto: 'Adicione pelo menos um exercício à sua lista de treino!' });
+      setStatus('Selecione ao menos um exercício.');
       return;
     }
 
-    setCarregando(true);
-    setMensagem(null);
-
-    const novoPerfil = {
+    const payload = {
       nome,
-      peso: parseFloat(peso),
-      altura: parseFloat(altura),
+      peso: Number(peso),
+      altura: Number(altura),
       objetivo,
       treinoPersonalizado: listaTreino.join(', ')
     };
@@ -62,100 +53,107 @@ export function TelaTreino() {
       const res = await fetch('http://localhost:8080/perfil', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novoPerfil)
+        body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error('Erro ao salvar no banco de dados.');
-
-      setMensagem({ tipo: 'sucesso', texto: 'Perfil e treino salvos com sucesso!' });
-      setNome('');
-      setPeso('');
-      setAltura('');
-      setListaTreino([]);
-    } catch (err) {
-      setMensagem({ tipo: 'erro', texto: err.message });
-    } finally {
-      setCarregando(false);
+      if (res.ok) {
+        setStatus('ok');
+        setNome('');
+        setPeso('');
+        setAltura('');
+        setListaTreino([]);
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
     }
-  };
+  }
 
   return (
-    <div className={styles.container}>
-      <h2 className={styles.titulo}>Montar Treino e Salvar no Perfil</h2>
+    <div className={styles.box}>
+      <h2 className={styles.title}>Novo Treino</h2>
 
-      <form onSubmit={salvarPerfilETreino}>
-        <div className={styles.secaoForm}>
-          <div className={styles.campo}>
-            <label>Nome Completo:</label>
-            <input value={nome} onChange={(e) => setNome(e.target.value)} required placeholder="Ex: Gustavo Henrique" />
+      <form onSubmit={handleSubmit}>
+        <div className={styles.field}>
+          <label>Nome do aluno</label>
+          <input 
+            type="text" 
+            value={nome} 
+            onChange={(e) => setNome(e.target.value)} 
+            required 
+          />
+        </div>
+
+        <div className={styles.fieldRow}>
+          <div className={styles.field}>
+            <label>Peso (kg)</label>
+            <input 
+              type="number" 
+              step="0.1" 
+              value={peso} 
+              onChange={(e) => setPeso(e.target.value)} 
+              required 
+            />
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <div className={`${styles.campo} ${styles.flex1}`}>
-              <label>Peso (kg):</label>
-              <input type="number" step="0.1" value={peso} onChange={(e) => setPeso(e.target.value)} required placeholder="75.0" />
-            </div>
-
-            <div className={`${styles.campo} ${styles.flex1}`}>
-              <label>Altura (m):</label>
-              <input type="number" step="0.01" value={altura} onChange={(e) => setAltura(e.target.value)} required placeholder="1.75" />
-            </div>
-          </div>
-
-          <div className={styles.campo}>
-            <label>Objetivo:</label>
-            <select value={objetivo} onChange={(e) => setObjetivo(e.target.value)}>
-              <option value="Hipertrofia">Hipertrofia</option>
-              <option value="Emagrecimento">Emagrecimento</option>
-              <option value="Resistência">Resistência</option>
-            </select>
+          <div className={styles.field}>
+            <label>Altura (m)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              value={altura} 
+              onChange={(e) => setAltura(e.target.value)} 
+              required 
+            />
           </div>
         </div>
 
-        <hr style={{ margin: '20px 0' }} />
+        <div className={styles.field}>
+          <label>Objetivo</label>
+          <select value={objetivo} onChange={(e) => setObjetivo(e.target.value)}>
+            <option value="Hipertrofia">Hipertrofia</option>
+            <option value="Emagrecimento">Emagrecimento</option>
+            <option value="Resistência">Resistência</option>
+          </select>
+        </div>
 
-        <div className={styles.secaoForm}>
-          <h3>Selecione os Exercícios da sua Lista</h3>
-          <div className={styles.seletorExercicio} style={{ marginTop: '10px' }}>
-            <select value={exercicioSelecionado} onChange={(e) => setExercicioSelecionado(e.target.value)}>
-              {opcoesExercicios.map((ex) => (
+        <div className={styles.field}>
+          <label>Exercícios disponíveis</label>
+          <div className={styles.row}>
+            <select value={exercicioAtual} onChange={(e) => setExercicioAtual(e.target.value)}>
+              {exerciciosApi.map((ex) => (
                 <option key={ex.id} value={ex.nome}>
                   {ex.nome} ({ex.categoria})
                 </option>
               ))}
             </select>
-            <button type="button" className={styles.botaoAdicionar} onClick={adicionarNaLista}>
-              + Adicionar
+            <button type="button" className={styles.btnAdd} onClick={handleAdd}>
+              Adicionar
             </button>
           </div>
         </div>
 
-        <div className={styles.listaCard}>
-          <h4>Sua Lista de Treino ({listaTreino.length} itens)</h4>
-          {listaTreino.length === 0 ? (
-            <p style={{ color: '#718096', marginTop: '8px' }}>Nenhum exercício adicionado ainda.</p>
-          ) : (
-            <ul style={{ listStyle: 'none', marginTop: '10px' }}>
-              {listaTreino.map((item) => (
-                <li key={item} className={styles.itemExercicio}>
-                  <span>{item}</span>
-                  <button type="button" className={styles.botaoRemover} onClick={() => removerDaLista(item)}>
-                    Remover
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className={styles.list}>
+          <p style={{ fontSize: '13px', color: '#8b949e', marginBottom: '8px' }}>
+            Exercícios no treino ({listaTreino.length})
+          </p>
+          {listaTreino.map((ex) => (
+            <div key={ex} className={styles.item}>
+              <span>{ex}</span>
+              <button type="button" className={styles.btnRemove} onClick={() => handleRemove(ex)}>
+                Remover
+              </button>
+            </div>
+          ))}
         </div>
 
-        {mensagem && (
-          <p style={{ color: mensagem.tipo === 'sucesso' ? 'green' : 'red', marginBottom: '12px', fontWeight: 'bold' }}>
-            {mensagem.texto}
-          </p>
-        )}
+        {status === 'ok' && <p className={styles.msgOk}>Perfil e treino salvos no banco!</p>}
+        {status === 'error' && <p className={styles.msgError}>Erro ao conectar com a API.</p>}
+        {status && status !== 'ok' && status !== 'error' && <p className={styles.msgError}>{status}</p>}
 
-        <button type="submit" className={styles.botaoSalvar} disabled={carregando}>
-          {carregando ? 'Salvando...' : 'Salvar Perfil e Treino'}
+        <button type="submit" className={styles.btnSubmit}>
+          Salvar Ficha
         </button>
       </form>
     </div>

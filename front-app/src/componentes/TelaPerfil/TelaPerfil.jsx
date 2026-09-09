@@ -1,75 +1,74 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './TelaPerfil.module.css';
 
 export function TelaPerfil() {
   const [perfis, setPerfis] = useState([]);
-  const [carregando, setCarregando] = useState(false);
-  const [erro, setErro] = useState(null);
-
-  const buscarPerfis = async () => {
-    setCarregando(true);
-    setErro(null);
-    try {
-      const res = await fetch('http://localhost:8080/perfil');
-      
-      if (res.status === 204) {
-        setPerfis([]);
-        return;
-      }
-
-      if (!res.ok) {
-        throw new Error('Falha ao buscar perfis na API.');
-      }
-
-      const dados = await res.json();
-      setPerfis(dados);
-    } catch (err) {
-      setErro(err.message);
-    } finally {
-      setCarregando(false);
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    buscarPerfis();
+    fetch('http://localhost:8080/perfil')
+      .then((res) => (res.status === 204 ? [] : res.json()))
+      .then((data) => {
+        setPerfis(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
+  if (loading) return <p style={{ color: '#8b949e', textAlign: 'center' }}>Carregando dados...</p>;
+
   return (
-    <div className={styles.container}>
-      <h2 className={styles.titulo}>Perfis e Treinos Cadastrados</h2>
+    <div className={styles.grid}>
+      {perfis.length === 0 ? (
+        <p style={{ color: '#8b949e', textAlign: 'center' }}>Nenhum perfil cadastrado.</p>
+      ) : (
+        perfis.map((p, index) => {
+          // Converte a string de volta em um array de exercícios
+          const exercicios = p.treinoPersonalizado ? p.treinoPersonalizado.split(', ') : [];
 
-      {carregando && <p style={{ textAlign: 'center' }}>Carregando perfis...</p>}
-      {erro && <p style={{ color: 'red', textAlign: 'center' }}>{erro}</p>}
-
-      {!carregando && !erro && perfis.length === 0 && (
-        <div className={styles.vazio}>
-          <p>Nenhum perfil cadastrado no banco de dados.</p>
-        </div>
-      )}
-
-      {!carregando && !erro && perfis.length > 0 && (
-        <div className={styles.grid}>
-          {perfis.map((item) => (
-            <div key={item.id} className={styles.card}>
-              <div className={styles.headerCard}>
-                <h3 className={styles.nome}>{item.nome}</h3>
-                <span className={styles.tagObjetivo}>{item.objetivo}</span>
+          return (
+            <div key={p.id} className={styles.card}>
+              <div className={styles.head}>
+                <div>
+                  <span className={styles.treinoNum}>Treino #{index + 1}</span>
+                  <h3 className={styles.name}>{p.nome}</h3>
+                </div>
+                <span className={styles.badge}>{p.objetivo}</span>
               </div>
 
-              <div className={styles.detalhes}>
-                <span><strong>Peso:</strong> {item.peso} kg</span>
-                <span><strong>Altura:</strong> {item.altura} m</span>
-              </div>
+              <p className={styles.details}>
+                Peso: <strong>{p.peso} kg</strong> • Altura: <strong>{p.altura} m</strong>
+              </p>
 
-              <div className={styles.secaoTreino}>
-                <p className={styles.subtituloTreino}>Treino Personalizado:</p>
-                <p className={styles.listaTreinos}>
-                  {item.treinoPersonalizado ? item.treinoPersonalizado : 'Nenhum exercício associado.'}
-                </p>
+              <div className={styles.tableBox}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50px' }}>#</th>
+                      <th>Exercício</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {exercicios.length === 0 ? (
+                      <tr>
+                        <td colSpan="2" style={{ textAlign: 'center', color: '#8b949e' }}>
+                          Nenhum exercício cadastrado.
+                        </td>
+                      </tr>
+                    ) : (
+                      exercicios.map((ex, i) => (
+                        <tr key={i}>
+                          <td className={styles.numCol}>{i + 1}</td>
+                          <td>{ex}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })
       )}
     </div>
   );
